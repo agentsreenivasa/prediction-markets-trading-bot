@@ -3,23 +3,15 @@ on: workflow_dispatch
 jobs:
   init-wiki:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Create wiki pages
+      - name: Push wiki pages
+        uses: Andrew-Chen-Wang/github-wiki-action@v4
         env:
+          WIKI_DIR: .wiki-pages/
           GH_TOKEN: ${{ secrets.WIKI_PAT }}
-          REPO: ${{ github.repository }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          mkdir -p /tmp/wiki && cd /tmp/wiki
-          git init -b master
-          
-          cp $GITHUB_WORKSPACE/.wiki-pages/*.md .
-          
-          git add -A
-          git commit -m "Add wiki documentation"
-          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.wiki.git"
-          git push -u origin master --force
+          GH_MAIL: agentsreenivasa@gmail.com
+          GH_NAME: agentsreenivasa

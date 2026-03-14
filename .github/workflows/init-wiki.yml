@@ -1,17 +1,39 @@
-name: Initialize Wiki
-on: workflow_dispatch
+name: Publish Wiki
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/bot-implementation, main]
+    paths: ['.wiki-pages/**']
 jobs:
-  init-wiki:
+  publish-wiki:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Push wiki pages
-        uses: Andrew-Chen-Wang/github-wiki-action@v4
+      - name: Publish wiki pages
         env:
-          WIKI_DIR: .wiki-pages/
           GH_TOKEN: ${{ secrets.WIKI_PAT }}
-          GH_MAIL: agentsreenivasa@gmail.com
-          GH_NAME: agentsreenivasa
+          REPO: ${{ github.repository }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          cd /tmp
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.wiki.git" wiki 2>/dev/null
+          if [ $? -ne 0 ]; then
+            echo "Wiki repo not found. Please create the first wiki page manually through the GitHub web UI."
+            echo "Visit: https://github.com/${REPO}/wiki/_new"
+            echo "After creating the first page, re-run this workflow."
+            exit 1
+          fi
+          
+          cd wiki
+          cp ${GITHUB_WORKSPACE}/.wiki-pages/*.md .
+          git add -A
+          
+          if git diff --cached --quiet; then
+            echo "No changes to publish"
+          else
+            git commit -m "Update wiki pages"
+            git push origin master || git push origin main
+          fi

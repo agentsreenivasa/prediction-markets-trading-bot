@@ -1,0 +1,71 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/arkarctech/prediction-markets-trading-bot
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+paperTrading: true
+
+env:
+  PAPER_TRADING: "true"
+  MAX_DAILY_LOSS_PCT: "0.05"
+  MAX_RISK_PER_TRADE: "0.02"
+  KELLY_FRACTION: "0.25"
+  MIN_SIGNAL_THRESHOLD: "0.55"
+  MAX_CONCURRENT_EXPOSURE: "0.10"
+  MAX_CONSECUTIVE_LOSSES: "5"
+  MAX_EXECUTION_LATENCY_MS: "300"
+  DEFAULT_INTERVAL_MINUTES: "5"
+  DATABASE_URL: "postgresql+asyncpg://pmbot:pmbot@pmbot-postgres:5432/pmbot"
+
+secrets:
+  # Reference ExternalSecret for production
+  externalSecret:
+    enabled: true
+    secretStoreRef:
+      name: onepassword-connect
+      kind: ClusterSecretStore
+    target:
+      name: pmbot-secrets
+    data:
+      - secretKey: POLY_PRIVATE_KEY
+        remoteRef:
+          key: prediction-markets-bot
+          property: POLY_PRIVATE_KEY
+      - secretKey: POLY_FUNDER_ADDRESS
+        remoteRef:
+          key: prediction-markets-bot
+          property: POLY_FUNDER_ADDRESS
+      - secretKey: POLY_API_KEY
+        remoteRef:
+          key: prediction-markets-bot
+          property: POLY_API_KEY
+      - secretKey: POLY_API_SECRET
+        remoteRef:
+          key: prediction-markets-bot
+          property: POLY_API_SECRET
+      - secretKey: POLY_API_PASSPHRASE
+        remoteRef:
+          key: prediction-markets-bot
+          property: POLY_API_PASSPHRASE
+
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  storage: 5Gi
+  database: pmbot
+  username: pmbot
+  password: pmbot
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

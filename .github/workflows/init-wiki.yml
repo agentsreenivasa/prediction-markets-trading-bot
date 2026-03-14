@@ -1,0 +1,27 @@
+name: Initialize Wiki
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  init-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Create wiki pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          mkdir -p /tmp/wiki && cd /tmp/wiki
+          git init -b master
+          
+          cp $GITHUB_WORKSPACE/.wiki-pages/*.md .
+          
+          git add -A
+          git commit -m "Add wiki documentation"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.wiki.git"
+          git push -u origin master --force

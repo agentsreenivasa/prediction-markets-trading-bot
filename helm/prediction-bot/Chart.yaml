@@ -1,0 +1,6 @@
+apiVersion: v2
+name: prediction-bot
+description: Polymarket BTC Prediction Market Trading Bot
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
